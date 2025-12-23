@@ -1,20 +1,17 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
+import logging
 import os
-import time
+
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-# Import internal modules
-from db import setup_db_events
-from routes import quiz, auth
-from schemas.models import Profile
-from routes.technical.technical import router as technical_router, add_cors as technical_cors
-import logging
-from routes.discussion_router import router as discussion_router
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import time
+
 # =========================================================
 # ✅ Load Environment Variables
 # =========================================================
@@ -24,8 +21,6 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
-
 
 
 # =========================================================
@@ -39,8 +34,8 @@ app = FastAPI(
 # ===============================
 # 422 VALIDATION ERROR DEBUGGER
 # ===============================
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+
+print("🔹 Login request received")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
@@ -70,14 +65,37 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://crackit360-backend-2.onrender.com",
+        "https://crackit360-backend-2.onrender.com", 
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def remove_strict_headers(request, call_next):
+    response = await call_next(request)
+    response.headers.pop("Cross-Origin-Opener-Policy", None)
+    response.headers.pop("Cross-Origin-Embedder-Policy", None)
+    return response
 
+
+# Import internal modules
+from db import setup_db_events
+from routes import quiz, auth
+from schemas.models import Profile
+from routes.technical.technical import router as technical_router, add_cors as technical_cors
+import logging
+from routes.discussion_router import router as discussion_router
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+
+app.include_router(auth.router)        # /api/auth/*
+app.include_router(quiz.router)
+technical_cors(app)
+app.include_router(technical_router)
+app.include_router(discussion_router)
 # =========================================================
 # ✅ MongoDB Connection
 # =========================================================
@@ -93,11 +111,7 @@ except Exception as e:
 # =========================================================
 # ✅ Include API Routers (With /api Prefix)
 # =========================================================
-app.include_router(auth.router)        # /api/auth/*
-app.include_router(quiz.router)
-technical_cors(app)
-app.include_router(technical_router)
-app.include_router(discussion_router)
+
 # =========================================================
 # ✅ Simple Profile API Example
 # =========================================================
