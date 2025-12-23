@@ -68,9 +68,12 @@ async def validation_exception_handler(request, exc):
 # =========================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or your frontend domain
+    allow_origins=[
+        "http://localhost:3000",
+        "https://crackit360-backend-2.onrender.com",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],  # IMPORTANT
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
