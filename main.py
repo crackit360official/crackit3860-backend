@@ -174,4 +174,4 @@ logging.basicConfig(
 # =========================================================
 # ✅ Register MongoDB Lifecycle Events
 # =========================================================
-setup_db_events(app)
+#setup_db_events(app)
