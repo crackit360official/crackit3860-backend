@@ -61,16 +61,18 @@ async def validation_exception_handler(request, exc):
 # =========================================================
 # ✅ CORS Configuration (Allow Frontend Requests)
 # =========================================================
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "https://crackit360-backend-2.onrender.com", 
+        "http://localhost:3000",  # your local React frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.middleware("http")
 async def remove_strict_headers(request, call_next):
