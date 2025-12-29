@@ -77,10 +77,15 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def remove_strict_headers(request, call_next):
+async def remove_strict_headers(request: Request, call_next):
     response = await call_next(request)
-    response.headers.pop("Cross-Origin-Opener-Policy", None)
-    response.headers.pop("Cross-Origin-Embedder-Policy", None)
+
+    if "Cross-Origin-Opener-Policy" in response.headers:
+        del response.headers["Cross-Origin-Opener-Policy"]
+
+    if "Cross-Origin-Embedder-Policy" in response.headers:
+        del response.headers["Cross-Origin-Embedder-Policy"]
+
     return response
 
 
