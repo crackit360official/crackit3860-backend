@@ -1,6 +1,5 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import logging
@@ -77,15 +76,10 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def remove_strict_headers(request: Request, call_next):
+async def remove_strict_headers(request, call_next):
     response = await call_next(request)
-
-    if "Cross-Origin-Opener-Policy" in response.headers:
-        del response.headers["Cross-Origin-Opener-Policy"]
-
-    if "Cross-Origin-Embedder-Policy" in response.headers:
-        del response.headers["Cross-Origin-Embedder-Policy"]
-
+    response.headers.pop("Cross-Origin-Opener-Policy", None)
+    response.headers.pop("Cross-Origin-Embedder-Policy", None)
     return response
 
 
@@ -94,6 +88,8 @@ from db import setup_db_events
 from routes import quiz, auth
 from schemas.models import Profile
 from routes.technical.technical import router as technical_router, add_cors as technical_cors
+from routes.practice import router as practice_router
+from routes.speed_test import router as speed_test_router
 import logging
 from routes.discussion_router import router as discussion_router
 from fastapi.responses import JSONResponse
@@ -105,6 +101,9 @@ app.include_router(quiz.router)
 technical_cors(app)
 app.include_router(technical_router)
 app.include_router(discussion_router)
+app.include_router(practice_router)
+app.include_router(speed_test_router)
+
 # =========================================================
 # ✅ MongoDB Connection
 # =========================================================
