@@ -163,9 +163,17 @@ class DiscussionCreate(BaseModel):
 class ReplyCreate(BaseModel):
     discussionId: str
     content: str
-
-
-
-
 class VoteCreate(BaseModel):
     type: Literal["UPVOTE", "DOWNVOTE"]
+# =========================================================
+#                    FREE PRACTICE                        #
+# =========================================================
+class QuestionOut(BaseModel):
+    section: str
+    stage: str
+    topic: str
+    difficulty: str
+    question: str
+    options: List[str]
+    correctAnswer: str
+    solution: Optional[str]
