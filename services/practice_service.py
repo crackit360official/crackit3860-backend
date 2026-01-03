@@ -4,10 +4,11 @@ from typing import List
 # FREE PRACTICE
 async def get_free_practice_questions(section: str, topic: str):
     cursor = quantitative_collection.find(
-        {"section": section, "topic": topic},
+        {"topic": topic},
         {"_id": 0}
     )
     return await cursor.to_list(length=1000)
+
 
 # PRACTICE SET QUESTIONS (Timed / Speed / Advanced)
 async def get_practice_questions(
@@ -19,7 +20,6 @@ async def get_practice_questions(
     pipeline = [
         {
             "$match": {
-                "section": section,
                 "topic": topic,
                 "difficulty": difficulty.capitalize()
             }
@@ -27,5 +27,6 @@ async def get_practice_questions(
         {"$sample": {"size": limit}}
     ]
 
-    cursor =quantitative_collection.aggregate(pipeline)
+    cursor = quantitative_collection.aggregate(pipeline)
     return await cursor.to_list(length=limit)
+
