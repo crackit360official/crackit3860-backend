@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Query
-from fastapi import APIRouter, Query
 from services.practice_service import get_practice_questions
-router = APIRouter(prefix="/api/speed-test", tags=["Speed Test"])
 router = APIRouter(prefix="/api/speed-test", tags=["Speed Test"])
 
 @router.get("/time-limit")
@@ -30,13 +28,18 @@ async def get_speed_test_questions(
     level: str = Query(...),
     limit: int = 10
 ):
+    difficulty_map = {
+    "easy": "Easy",
+    "intermediate": "Medium",
+    "hard": "Hard"
+}
     """
     Speed Test uses same question pool as practice
     but with strict limit + randomization
     """
     return await get_practice_questions(
-        section=section,
-        topic=topic,
-        difficulty=level,
-        limit=limit
-    )
+    section=section,
+    topic=topic,
+    difficulty=difficulty_map.get(level.lower(), "Medium"),
+    limit=limit
+)
