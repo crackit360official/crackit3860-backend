@@ -6,7 +6,6 @@ from services.practice_service import (
 
 router = APIRouter(prefix="/api/practice", tags=["Practice"])
 
-# FREE PRACTICE (your free-practice mode)
 @router.get("/free")
 async def free_practice(
     section: str = Query(...),
@@ -14,14 +13,17 @@ async def free_practice(
 ):
     return await get_free_practice_questions(section, topic)
 
-# PRACTICE SET QUESTIONS
+
 @router.get("/questions")
 async def practice_questions(
-    section: str,
-    topic: str,
-    difficulty: str,
-    limit: int = 15
+    section: str = Query(...),
+    topic: str = Query(...),
+    difficulty: str = Query(...),
+    limit: int = Query(10)
 ):
     return await get_practice_questions(
-        section, topic, difficulty, limit
+        section=section,
+        topic=topic,
+        difficulty=difficulty,
+        limit=limit
     )
