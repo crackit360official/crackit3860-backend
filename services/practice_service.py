@@ -1,9 +1,9 @@
-from db import db
+from db import quantitative_collection
 from typing import List
 
 # FREE PRACTICE
 async def get_free_practice_questions(section: str, topic: str):
-    cursor = db.questions.find(
+    cursor = quantitative_collection.find(
         {"section": section, "topic": topic},
         {"_id": 0}
     )
@@ -21,11 +21,11 @@ async def get_practice_questions(
             "$match": {
                 "section": section,
                 "topic": topic,
-                "difficulty": difficulty
+                "difficulty": difficulty.capitalize()
             }
         },
         {"$sample": {"size": limit}}
     ]
 
-    cursor = db.questions.aggregate(pipeline)
+    cursor =quantitative_collection.aggregate(pipeline)
     return await cursor.to_list(length=limit)
