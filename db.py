@@ -37,10 +37,14 @@ vote_col=db['vote_col']
 quantitative_collection = db["QuantitativeQuestions"]
 speedtest_submissions = db["SpeedTestSubmissions"]  # FIXED NAME (your version was wrong)
 
+async def create_indexes():
+    await db.question_attempts.create_index([("user_id", 1), ("created_at", -1)])
+    await db.question_attempts.create_index("attempt_id", unique=True)
+    await db.question_attempts.create_index([("user_id", 1), ("topic", 1)])
+    await db.analytics_cache.create_index("expires", expireAfterSeconds=0)
 
 # ----------------------------------------------------
-# ✅ Test MongoDB connection
-# ----------------------------------------------------
+# ✅ Test MongoDB connection# ----------------------------------------------------
 async def test_mongo_connection():
     try:
         await db.command("ping")

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException ,Request
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
@@ -10,7 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import time
-
+from uuid import uuid4
 # =========================================================
 # ✅ Load Environment Variables
 # =========================================================
@@ -56,7 +56,10 @@ async def validation_exception_handler(request, exc):
         content={"detail": exc.errors()},
     )
 
-
+@app.get("/ready")
+async def readiness():
+    await db.command("ping")
+    return {"status": "ready"}
 # =========================================================
 # ✅ CORS Configuration (Allow Frontend Requests)
 # =========================================================
@@ -82,7 +85,12 @@ async def remove_strict_headers(request, call_next):
     response.headers["Cross-Origin-Embedder-Policy"] = "unsafe-none"
     return response
 
-
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request.state.request_id = str(uuid4())
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request.state.request_id
+    return response
 # Import internal modules
 from db import setup_db_events
 from routes import quiz, auth
@@ -90,6 +98,7 @@ from schemas.models import Profile
 from routes.technical.technical import router as technical_router, add_cors as technical_cors
 from routes.practice import router as practice_router
 from routes.speed_test import router as speed_test_router
+from routes import analytics, attempts
 import logging
 from routes.discussion_router import router as discussion_router
 from fastapi.responses import JSONResponse
@@ -104,8 +113,8 @@ app.include_router(technical_router)
 app.include_router(discussion_router)
 app.include_router(practice_router)
 app.include_router(speed_test_router)
-app.include_router(analysis_router)
-app.include_router(attempt_router)
+app.include_router(attempts.router)
+app.include_router(analytics.router)
 # =========================================================
 # ✅ MongoDB Connection
 # =========================================================
@@ -156,8 +165,6 @@ if os.path.exists(frontend_dir):
         if os.path.exists(index_file):
             return FileResponse(index_file)
         return {"error": "React build not found"}
-
-
 # =========================================================
 # ✅ Root Route (Health Check)
 # =========================================================
