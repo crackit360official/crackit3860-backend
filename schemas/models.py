@@ -1,14 +1,51 @@
-# models.py
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List, Any, Dict
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from typing import Optional, List, Any, Dict, Literal
 from datetime import datetime
-from typing import Literal
+
+# =========================================================
+# ATTEMPT MODELS
+# =========================================================
+
+class AttemptCreate(BaseModel):
+    attempt_id: str
+    user_id: str
+    question_id: str
+    topic: str
+    difficulty: str = Field(
+        default="medium",
+        pattern="^(easy|medium|hard)$"
+    )
+    is_correct: bool
+    time_spent: float
+    created_at: Optional[datetime] = None
+
+    @field_validator("topic")
+    @classmethod
+    def validate_topic(cls, v: str):
+        banned = {"admin", "system", "<script>"}
+        if any(b in v.lower() for b in banned):
+            raise ValueError("Invalid topic")
+        return v
+
+
+class PracticeQuery(BaseModel):
+    topic: str = Field(min_length=2)
+    difficulty: str = Field(
+        default="medium",
+        pattern="^(easy|medium|hard)$"
+    )
+    limit: int = Field(default=10, ge=1, le=50)
+    skip: int = Field(default=0, ge=0)
+
+    class Config:
+        extra = "forbid"
+
+
 # =========================================================
 # USER MODELS
 # =========================================================
 
 class UserBase(BaseModel):
-    """Base fields shared across user schemas."""
     name: str
     email: EmailStr
 
@@ -18,18 +55,15 @@ class EmailRequest(BaseModel):
 
 
 class UserRegister(UserBase):
-    """Model for user registration."""
     password: str
 
 
 class UserLogin(BaseModel):
-    """Model for user login."""
     email: EmailStr
     password: str
 
 
 class UserInDB(UserBase):
-    """Model stored inside MongoDB."""
     id: Optional[str] = Field(default=None, alias="_id")
     password: str
     email_verified: bool = False
@@ -46,7 +80,6 @@ class UserInDB(UserBase):
 # =========================================================
 
 class AuthUser(BaseModel):
-    """Returned in Login & Google Login responses."""
     id: str
     name: str
     email: EmailStr
@@ -55,7 +88,6 @@ class AuthUser(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    """Standard Authentication Response."""
     access_token: str
     token_type: str = "bearer"
     user: AuthUser
@@ -70,7 +102,7 @@ class PasswordResetResponse(BaseModel):
 
 
 # =========================================================
-# PROFILE MODEL
+# PROFILE
 # =========================================================
 
 class Profile(BaseModel):
@@ -78,22 +110,18 @@ class Profile(BaseModel):
     age: int
 
 
-# =========================================================
-# GENERIC RESPONSE
-# =========================================================
-
 class MessageResponse(BaseModel):
     message: str
     data: Optional[Any] = None
 
 
 # =========================================================
-# QUIZ SUBMISSION MODELS
+# QUIZ SUBMISSION
 # =========================================================
 
 class QuizSubmissionPayload(BaseModel):
     userId: str
-    userTrack: str  # If you remove track, tell me—I will update backend too
+    userTrack: str
     answers: List[Optional[int]]
     timeTaken: int
 
@@ -102,7 +130,7 @@ class DailyQuizStudent(BaseModel):
     user_id: str
     user_name: str
     user_email: str
-    track: str   # Same here—can be removed if not needed
+    track: str
     question_ids: List[str]
     selected_answers: List[int]
     correct_answers: List[int]
@@ -133,7 +161,7 @@ class Question(BaseModel):
 
 
 # =========================================================
-# QUANTITATIVE QUESTIONS
+# QUANTITATIVE
 # =========================================================
 
 class SpeedTestQuestion(BaseModel):
@@ -152,22 +180,30 @@ class SubmitRequest(BaseModel):
     level: str
     answers: List[int]
 
+
 # =========================================================
-#                       Discussion                        #
+# DISCUSSION
 # =========================================================
+
 class DiscussionCreate(BaseModel):
     title: str = Field(..., min_length=5, max_length=200)
     content: str = Field(..., min_length=10)
     category: str
 
+
 class ReplyCreate(BaseModel):
     discussionId: str
     content: str
+
+
 class VoteCreate(BaseModel):
     type: Literal["UPVOTE", "DOWNVOTE"]
+
+
 # =========================================================
-#                    FREE PRACTICE                        #
+# FREE PRACTICE
 # =========================================================
+
 class QuestionOut(BaseModel):
     section: str
     stage: str
@@ -177,20 +213,12 @@ class QuestionOut(BaseModel):
     options: List[str]
     correctAnswer: str
     solution: Optional[str]
-class QuestionAttempt(BaseModel): 
+
+
+class QuestionAttempt(BaseModel):
     user_id: str
-    question_id: str 
+    question_id: str
     topic: str
     is_correct: bool
     time_spent: float
-    created_at: datetime = Field(default_factory=datetime.utcnow) 
-class Config: 
-    extra = "forbid" 
-class PracticeQuery(BaseModel): 
-    topic: str = Field(min_length=2) 
-    difficulty: str = Field(
-    default="medium",
-    pattern="^(easy|medium|hard)$"
-)
-    limit: int = Field(default=10, ge=1, le=50) 
-    skip: int = Field(default=0, ge=0)
+    created_at: datetime = Field(default_factory=datetime.utcnow)

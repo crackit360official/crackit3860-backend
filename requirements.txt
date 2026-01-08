@@ -14,3 +14,4 @@ google-auth-httplib2
 requests
 dnspython
 PyJWT
+slowapi
