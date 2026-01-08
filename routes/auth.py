@@ -1,6 +1,6 @@
 # auth.py (NO USER_TYPE VERSION)
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Body
-from schemas.models import UserRegister, UserLogin, AuthUser, TokenResponse
+from schemas.models import UserRegister, UserLogin
 from db import user_collection
 from security import (
     hash_password,
@@ -11,12 +11,11 @@ from security import (
     verify_reset_token
 )
 from utils.util import schedule_email, make_verify_link, make_reset_link
-from bson import ObjectId
+
 from datetime import datetime
 from pymongo.errors import DuplicateKeyError
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-import traceback
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 GOOGLE_CLIENT_ID = "299220062167-98gmd26a9916dijupmrpl06ouilhjfp3.apps.googleusercontent.com"

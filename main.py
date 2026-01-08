@@ -94,7 +94,8 @@ import logging
 from routes.discussion_router import router as discussion_router
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-
+from routes.analysis import router as analysis_router
+from routes.attempt import router as attempt_router
 
 app.include_router(auth.router)        # /api/auth/*
 app.include_router(quiz.router)
@@ -103,7 +104,8 @@ app.include_router(technical_router)
 app.include_router(discussion_router)
 app.include_router(practice_router)
 app.include_router(speed_test_router)
-
+app.include_router(analysis_router)
+app.include_router(attempt_router)
 # =========================================================
 # ✅ MongoDB Connection
 # =========================================================

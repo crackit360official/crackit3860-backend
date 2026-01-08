@@ -177,3 +177,20 @@ class QuestionOut(BaseModel):
     options: List[str]
     correctAnswer: str
     solution: Optional[str]
+class QuestionAttempt(BaseModel): 
+    user_id: str
+    question_id: str 
+    topic: str
+    is_correct: bool
+    time_spent: float
+    created_at: datetime = Field(default_factory=datetime.utcnow) 
+class Config: 
+    extra = "forbid" 
+class PracticeQuery(BaseModel): 
+    topic: str = Field(min_length=2) 
+    difficulty: str = Field(
+    default="medium",
+    pattern="^(easy|medium|hard)$"
+)
+    limit: int = Field(default=10, ge=1, le=50) 
+    skip: int = Field(default=0, ge=0)

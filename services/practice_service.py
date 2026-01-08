@@ -9,7 +9,6 @@ async def get_free_practice_questions(section: str, topic: str):
     )
     return await cursor.to_list(length=1000)
 
-
 # PRACTICE SET QUESTIONS (Timed / Speed / Advanced)
 async def get_practice_questions(
     section: str,
