@@ -4,7 +4,7 @@ from prometheus_client import Counter, Histogram
 from services.practice_service import get_practice_questions
 from services.common import normalize_difficulty
 from security import get_current_user, check_rate_limit
-from models import SpeedTestQuestion
+from schemas.models import SpeedTestQuestion
 import time
 
 router = APIRouter(prefix="/api/speed-test", tags=["Speed Test"])
