@@ -1,4 +1,4 @@
-from schemas.attempt import AttemptCreate
+from schemas.attempt_sc import AttemptCreate
 from fastapi import HTTPException
 from datetime import datetime
 import logging

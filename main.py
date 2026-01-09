@@ -101,13 +101,12 @@ from schemas.models import Profile
 from routes.technical.technical import router as technical_router, add_cors as technical_cors
 from routes.practice import router as practice_router
 from routes.speed_test import router as speed_test_router
-from routes import analytics, attempts
 import logging
 from routes.discussion_router import router as discussion_router
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from routes.analysis import router as analysis_router
-from routes.attempt import router as attempt_router
+from routes.analytics import router as analytics_router
+from routes.attempts import router as attempt_router
 
 app.include_router(auth.router)        # /api/auth/*
 app.include_router(quiz.router)
@@ -116,8 +115,8 @@ app.include_router(technical_router)
 app.include_router(discussion_router)
 app.include_router(practice_router)
 app.include_router(speed_test_router)
-app.include_router(attempts.router)
-app.include_router(analytics.router)
+app.include_router(attempt_router)
+app.include_router(analytics_router)
 # =========================================================
 # ✅ MongoDB Connection
 # =========================================================

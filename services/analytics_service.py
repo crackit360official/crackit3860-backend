@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import json
 import statistics
 import logging
-from schemas.analysis import (
+from schemas.analysis_sc import (
     AnalyticsResponse,
     AnalyticsOverview,
     TopicData,

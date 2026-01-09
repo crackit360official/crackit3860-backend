@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request
-from schemas.attempt import AttemptCreate
-from services.attempt_services import AttemptService
+from schemas.attempt_sc import AttemptCreate
+from services.attempt_service import AttemptService
 from db import db
 from slowapi import Limiter
 from slowapi.util import get_remote_address
