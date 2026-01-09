@@ -6,7 +6,7 @@ from services.practice_service import (
     get_practice_questions
 )
 from security import get_current_user, check_rate_limit
-from models import PracticeQuery, QuestionOut
+from schemas.models import PracticeQuery, QuestionOut
 import logging
 import time
 
