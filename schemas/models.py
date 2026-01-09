@@ -28,7 +28,9 @@ class AttemptCreate(BaseModel):
         return v
 
 
+
 class PracticeQuery(BaseModel):
+    section: str = Field(min_length=2)
     topic: str = Field(min_length=2)
     difficulty: Literal["easy", "medium", "hard", "intermediate"] = "medium"
     limit: int = Field(default=10, ge=1, le=50)
@@ -37,6 +39,18 @@ class PracticeQuery(BaseModel):
     class Config:
         extra = "forbid"
 
+
+# ================= QUESTION OUTPUT =================
+
+class QuestionOut(BaseModel):
+    section: str
+    stage: str
+    topic: str
+    difficulty: str
+    question: str
+    options: List[str]
+    correctAnswer: str
+    solution: Optional[str]
 
 
 # =========================================================
@@ -202,15 +216,7 @@ class VoteCreate(BaseModel):
 # FREE PRACTICE
 # =========================================================
 
-class QuestionOut(BaseModel):
-    section: str
-    stage: str
-    topic: str
-    difficulty: str
-    question: str
-    options: List[str]
-    correctAnswer: str
-    solution: Optional[str]
+
 class QuestionAttempt(BaseModel):
     user_id: str
     question_id: str

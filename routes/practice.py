@@ -47,10 +47,7 @@ async def free_practice(
         return result
     except Exception as e:
         PRACTICE_HITS.labels(endpoint="free", status="error").inc()
-        logger.error(
-            "free_practice_failed",
-            extra={"error": str(e), "request_id": request.state.request_id}
-        )
+        logger.error("free_practice_failed", exc_info=True)
         raise
     finally:
         PRACTICE_LATENCY.labels(endpoint="free").observe(time.time() - start)
@@ -76,16 +73,9 @@ async def practice_questions(
         )
         PRACTICE_HITS.labels(endpoint="questions", status="success").inc()
         return result
-    except Exception as e:
+    except Exception:
         PRACTICE_HITS.labels(endpoint="questions", status="error").inc()
-        logger.error(
-            "practice_questions_failed",
-            extra={
-                "error": str(e),
-                "user_id": user["id"],
-                "request_id": request.state.request_id
-            }
-        )
+        logger.error("practice_questions_failed", exc_info=True)
         raise
     finally:
         PRACTICE_LATENCY.labels(endpoint="questions").observe(time.time() - start)
