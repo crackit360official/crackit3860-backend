@@ -30,15 +30,13 @@ class AttemptCreate(BaseModel):
 
 class PracticeQuery(BaseModel):
     topic: str = Field(min_length=2)
-    difficulty: str = Field(
-        default="medium",
-        pattern="^(easy|medium|hard)$"
-    )
+    difficulty: Literal["easy", "medium", "hard", "intermediate"] = "medium"
     limit: int = Field(default=10, ge=1, le=50)
     skip: int = Field(default=0, ge=0)
 
     class Config:
         extra = "forbid"
+
 
 
 # =========================================================
@@ -223,8 +221,3 @@ class QuestionAttempt(BaseModel):
 
     class Config:
         extra = "forbid"
-class PracticeQuery(BaseModel):
-    topic: str = Field(min_length=2)
-    difficulty: str = Field(regex="^(easy|medium|hard|intermediate)$")
-    limit: int = Field(default=10, ge=1, le=50)
-    skip: int = Field(default=0, ge=0)
