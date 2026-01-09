@@ -15,6 +15,9 @@ from uuid import uuid4
 # ✅ Load Environment Variables
 # =========================================================
 logger = logging.getLogger("CrackIt360")
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
