@@ -43,14 +43,14 @@ class PracticeQuery(BaseModel):
 # ================= QUESTION OUTPUT =================
 
 class QuestionOut(BaseModel):
-    section: str
-    stage: str
+    section: Optional[str] = None
+    stage: Optional[str] = None
     topic: str
     difficulty: str
     question: str
     options: List[str]
     correctAnswer: str
-    solution: Optional[str]
+    solution: Optional[str] = None
 
 
 # =========================================================
