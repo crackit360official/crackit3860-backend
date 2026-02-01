@@ -4,7 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import logging
 import os
-
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
@@ -33,6 +33,19 @@ app = FastAPI(
     description="FastAPI backend powering CrackIt360 (Email + Google Auth, Quizzes, Technical Modules)",
     version="1.0",
 )
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # ===============================
 # 422 VALIDATION ERROR DEBUGGER
 # ===============================
@@ -66,18 +79,8 @@ async def readiness():
 # =========================================================
 # ✅ CORS Configuration (Allow Frontend Requests)
 # =========================================================
-from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 
 
@@ -127,13 +130,7 @@ try:
 except Exception as e:
     print("❌ MongoDB connection failed:", e)
     db = None
-
-
-# =========================================================
-# ✅ Include API Routers (With /api Prefix)
-# =========================================================
-
-# =========================================================
+# ========================================================
 # ✅ Simple Profile API Example
 # =========================================================
 @app.post("/api/profile")
