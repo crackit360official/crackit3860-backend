@@ -66,9 +66,9 @@ async def free_practice(
 
     start = time.time()
     try:
-        result = await get_free_practice_questions(topic, skip, limit)
-        PRACTICE_HITS.labels(endpoint="free", status="success").inc()
-        return result
+        raw = await get_free_practice_questions(topic, skip, limit)
+        mapped = [map_free_practice_question(q) for q in raw]
+        return mapped
     except Exception:
         PRACTICE_HITS.labels(endpoint="free", status="error").inc()
         logger.error("free_practice_failed", exc_info=True)
