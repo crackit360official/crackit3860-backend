@@ -111,6 +111,21 @@ from fastapi.exceptions import RequestValidationError
 from routes.analytics import router as analytics_router
 from routes.attempts import router as attempt_router
 
+@app.middleware("http")
+async def force_practice_cors(request: Request, call_next):
+    response = await call_next(request)
+
+    if request.url.path.startswith("/api/practice"):
+        origin = request.headers.get("origin")
+        if origin in ("http://localhost:3000", "http://127.0.0.1:3000"):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "*"
+
+    return response
+
+
 app.include_router(auth.router)        # /api/auth/*
 app.include_router(quiz.router)
 technical_cors(app)
@@ -207,3 +222,15 @@ logging.basicConfig(
 # =========================================================
 # ✅ Register MongoDB Lifecycle Events
 # =========================================================
+@app.options("/{path:path}")
+async def global_preflight(path: str, request: Request):
+    response = JSONResponse(status_code=200, content={})
+    origin = request.headers.get("origin")
+
+    if origin in ("http://localhost:3000", "http://127.0.0.1:3000"):
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+
+    return response
