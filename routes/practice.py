@@ -13,6 +13,17 @@ import time
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/practice", tags=["Practice"])
+def map_free_practice_question(q: dict) -> dict:
+    return {
+        "section": q.get("subject", "quantitative"),
+        "stage": "practice",
+        "topic": q.get("topic"),
+        "difficulty": q.get("difficulty"),
+        "question": q.get("question"),
+        "options": q.get("options"),
+        "correctAnswer": q.get("correctAnswer"),
+        "solution": q.get("explanation"),
+    }
 
 # ---------------- METRICS ----------------
 PRACTICE_HITS = Counter(
