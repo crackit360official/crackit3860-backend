@@ -171,7 +171,7 @@ from routes.analytics import router as analytics_router
 from routes.attempts import router as attempt_router
 from routes.hr import router as hr_router
 
-app.include_router(auth.router)        # /api/auth/*
+app.include_router(auth.router)
 app.include_router(quiz.router)
 technical_cors(app)
 app.include_router(technical_router)
