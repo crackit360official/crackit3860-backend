@@ -4,61 +4,99 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import logging
 import os
-
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 import time
 from uuid import uuid4
+from fastapi.responses import JSONResponse, FileResponse
+
 # =========================================================
-# ✅ Load Environment Variables
+# ✅Load Environment Variables
 # =========================================================
-logger = logging.getLogger("CrackIt360")
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
+# =========================================================
+# ✅Logging
+# =========================================================
+logger = logging.getLogger("CrackIt360")
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter(
+    "%(asctime)s | %(levelname)s | %(message)s"
+)
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+# File handler
+file_handler = logging.FileHandler("crackit360.log")
+file_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 # =========================================================
-# ✅ Initialize FastAPI App
+# Initialize FastAPI App
 # =========================================================
 app = FastAPI(
     title="CrackIt360 Backend",
-    description="FastAPI backend powering CrackIt360 (Email + Google Auth, Quizzes, Technical Modules)",
+    description="FastAPI backend powering CrackIt360",
     version="1.0",
 )
+
+# =========================================================
+# Global CORS (PRIMARY)
+# =========================================================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# =========================================================
+# Validation Error Debugger
+# =========================================================
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    logger.error(f"422 Validation Error | {request.url.path} | {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
 # ===============================
 # 422 VALIDATION ERROR DEBUGGER
 # ===============================
-
 print("🔹 Login request received")
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    print("\n==================== 422 ERROR FOUND ====================")
-    print("❌ BODY VALIDATION FAILED")
-    print("➡ PATH:", request.url.path)
-    print("➡ ERROR DETAILS:", exc.errors())
-
-    try:
-        body = await request.body()
-        print("➡ RECEIVED BODY:", body.decode() if body else "EMPTY BODY")
-    except Exception as e:
-        print("➡ BODY READ FAILED:", str(e))
-
-    print("=========================================================\n")
+    if os.getenv("ENV") == "development":
+        print("\n===== 422 VALIDATION ERROR =====")
+        print("PATH:", request.url.path)
+        print("ERRORS:", exc.errors())
+        try:
+            body = await request.body()
+            print("BODY:", body.decode() if body else "EMPTY")
+        except Exception:
+            pass
+        print("===============================\n")
+    else:
+        logger.error(
+            f"422 Validation Error | PATH={request.url.path} | ERRORS={exc.errors()}"
+        )
 
     return JSONResponse(
         status_code=422,
         content={"detail": exc.errors()},
     )
-
 @app.get("/ready")
 async def readiness():
     await db.command("ping")
@@ -66,20 +104,6 @@ async def readiness():
 # =========================================================
 # ✅ CORS Configuration (Allow Frontend Requests)
 # =========================================================
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
 
 @app.middleware("http")
 async def remove_strict_headers(request, call_next):
@@ -94,16 +118,55 @@ async def add_request_id(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Request-ID"] = request.state.request_id
     return response
+
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    start_time = time.time()
+
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        process_time = (time.time() - start_time) * 1000
+        logger.exception(
+            f"{request.method} {request.url.path} "
+            f"| ERROR | {process_time:.2f}ms"
+        )
+        raise
+
+    process_time = (time.time() - start_time) * 1000
+
+    logger.info(
+        f"{request.method} {request.url.path} "
+        f"| {response.status_code} | {process_time:.2f}ms"
+    )
+
+    return response
+
+# Optional Practice CORS (from GitHub)
+# =========================================================
+@app.middleware("http")
+async def force_practice_cors(request: Request, call_next):
+    response = await call_next(request)
+
+    if request.url.path.startswith("/api/practice"):
+        origin = request.headers.get("origin")
+        if origin in ("http://localhost:3000", "http://127.0.0.1:3000"):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "*"
+
+    return response
+
+
+
 # Import internal modules
 from routes import quiz, auth
 from schemas.models import Profile
 from routes.technical.technical import router as technical_router, add_cors as technical_cors
 from routes.practice import router as practice_router
 from routes.speed_test import router as speed_test_router
-import logging
 from routes.discussion_router import router as discussion_router
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 from routes.analytics import router as analytics_router
 from routes.attempts import router as attempt_router
 from routes.hr import router as hr_router
@@ -128,13 +191,7 @@ try:
 except Exception as e:
     print("❌ MongoDB connection failed:", e)
     db = None
-
-
-# =========================================================
-# ✅ Include API Routers (With /api Prefix)
-# =========================================================
-
-# =========================================================
+# ========================================================
 # ✅ Simple Profile API Example
 # =========================================================
 @app.post("/api/profile")
@@ -180,34 +237,19 @@ async def root():
         "secret_loaded": bool(SECRET_KEY),
     }
 
-@app.middleware("http")
-async def logging_middleware(request, call_next):
-    start_time = time.time()
-
-    try:
-        response = await call_next(request)
-    except Exception as e:
-        process_time = (time.time() - start_time) * 1000
-        logger.error(
-            f"❌ ERROR | {request.method} {request.url.path} | {process_time:.2f}ms | {str(e)}"
-        )
-        raise
-
-    process_time = (time.time() - start_time) * 1000
-
-    logger.info(
-        f"➡ REQUEST | {request.method} {request.url.path} "
-        f"| {response.status_code} | {process_time:.2f}ms"
-    )
-
-    return response
-
-logging.basicConfig(
-    filename="crackit360.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
 
 # =========================================================
 # ✅ Register MongoDB Lifecycle Events
 # =========================================================
+@app.options("/{path:path}")
+async def global_preflight(path: str, request: Request):
+    response = JSONResponse(status_code=200, content={})
+    origin = request.headers.get("origin")
+
+    if origin in ("http://localhost:3000", "http://127.0.0.1:3000"):
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+
+    return response

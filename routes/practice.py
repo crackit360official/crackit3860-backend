@@ -13,6 +13,17 @@ import time
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/practice", tags=["Practice"])
+def map_free_practice_question(q: dict) -> dict:
+    return {
+        "section": q.get("subject", "quantitative"),
+        "stage": "practice",
+        "topic": q.get("topic"),
+        "difficulty": q.get("difficulty"),
+        "question": q.get("question"),
+        "options": q.get("options"),
+        "correctAnswer": q.get("correctAnswer"),
+        "solution": q.get("explanation"),
+    }
 
 # ---------------- METRICS ----------------
 PRACTICE_HITS = Counter(
@@ -27,6 +38,15 @@ PRACTICE_LATENCY = Histogram(
     ["endpoint"]
 )
 
+# ---------------- CORS PREFLIGHT (FIX) ----------------
+@router.options("/free")
+async def free_practice_preflight():
+    """
+    Handles CORS preflight requests explicitly.
+    Must NOT apply rate limiting or business logic.
+    """
+    return {}
+
 # ---------------- FREE PRACTICE ----------------
 @router.get("/free", response_model=List[QuestionOut])
 async def free_practice(
@@ -36,16 +56,20 @@ async def free_practice(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=50)
 ):
-    client_key = f"{request.client.host}:anon"
-    if not check_rate_limit(client_key, "free_practice"):
-        raise HTTPException(429, "Rate limit exceeded")
+    # ✅ Skip rate limiting for preflight / missing client
+    if request.method != "OPTIONS":
+        client_host = request.client.host if request.client else "unknown"
+        client_key = f"{client_host}:anon"
+
+        if not check_rate_limit(client_key, "free_practice"):
+            raise HTTPException(429, "Rate limit exceeded")
 
     start = time.time()
     try:
-        result = await get_free_practice_questions(topic, skip, limit)
-        PRACTICE_HITS.labels(endpoint="free", status="success").inc()
-        return result
-    except Exception as e:
+        raw = await get_free_practice_questions(topic, skip, limit)
+        mapped = [map_free_practice_question(q) for q in raw]
+        return mapped
+    except Exception:
         PRACTICE_HITS.labels(endpoint="free", status="error").inc()
         logger.error("free_practice_failed", exc_info=True)
         raise
@@ -59,7 +83,9 @@ async def practice_questions(
     query: PracticeQuery = Depends(),
     user=Depends(get_current_user)
 ):
-    client_key = f"{request.client.host}:{user['id']}"
+    client_host = request.client.host if request.client else "unknown"
+    client_key = f"{client_host}:{user['id']}"
+
     if not check_rate_limit(client_key, "practice_questions"):
         raise HTTPException(429, "Rate limit exceeded")
 
