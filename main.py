@@ -110,6 +110,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from routes.analytics import router as analytics_router
 from routes.attempts import router as attempt_router
+from routes.hr import router as hr_router
 
 @app.middleware("http")
 async def force_practice_cors(request: Request, call_next):
@@ -135,6 +136,7 @@ app.include_router(practice_router)
 app.include_router(speed_test_router)
 app.include_router(attempt_router)
 app.include_router(analytics_router)
+app.include_router(hr_router)
 # =========================================================
 # ✅ MongoDB Connection
 # =========================================================
