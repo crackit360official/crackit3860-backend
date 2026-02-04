@@ -1,9 +1,11 @@
 # services/common.py
-def normalize_difficulty(value: str) -> str:
+def normalize_difficulty(diff: str | None) -> str | None:
+    if not diff:
+        return None
     mapping = {
-        "easy": "Easy",
-        "medium": "Medium",
-        "intermediate": "Medium",
-        "hard": "Hard"
+        "easy": "easy",
+        "medium": "medium",
+        "hard": "hard",
+        "intermediate": "intermediate"
     }
-    return mapping.get(value.strip().lower(), "Medium")
+    return mapping.get(diff.lower())

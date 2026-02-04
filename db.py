@@ -1,9 +1,13 @@
 # db.py
 import os
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import (
+    AsyncIOMotorClient,
+    AsyncIOMotorGridFSBucket
+)
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import certifi
+import gridfs
 load_dotenv()
 
 MONGO_URL = os.getenv("MONGO_URL")
@@ -20,7 +24,10 @@ client = AsyncIOMotorClient(
 )
 
 db = client[DB_NAME]
-
+def get_db():
+    return db
+def get_fs_bucket() -> AsyncIOMotorGridFSBucket:
+    return AsyncIOMotorGridFSBucket(db, bucket_name="hr_audio")
 # ----------------------------------------------------
 # ✅ Collections
 # ----------------------------------------------------
@@ -33,7 +40,9 @@ technical_submissions = db["TechnicalSubmissions"]
 discussion_col = db["Discussion"]
 reply_col = db["Discussion_replies"]
 vote_col=db['vote_col']
-# 👉 Your speed test + quantitative collections
+hr_questions = db["hr_questions"]
+hr_progress = db["hr_progress"]
+hr_attempts = db["hr_attempts"]
 quantitative_collection = db["QuantitativeQuestions"]
 speedtest_submissions = db["SpeedTestSubmissions"]  # FIXED NAME (your version was wrong)
 

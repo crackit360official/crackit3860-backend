@@ -95,7 +95,6 @@ async def add_request_id(request: Request, call_next):
     response.headers["X-Request-ID"] = request.state.request_id
     return response
 # Import internal modules
-from db import setup_db_events
 from routes import quiz, auth
 from schemas.models import Profile
 from routes.technical.technical import router as technical_router, add_cors as technical_cors
@@ -107,6 +106,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from routes.analytics import router as analytics_router
 from routes.attempts import router as attempt_router
+from routes.hr import router as hr_router
 
 app.include_router(auth.router)        # /api/auth/*
 app.include_router(quiz.router)
@@ -117,6 +117,7 @@ app.include_router(practice_router)
 app.include_router(speed_test_router)
 app.include_router(attempt_router)
 app.include_router(analytics_router)
+app.include_router(hr_router)
 # =========================================================
 # ✅ MongoDB Connection
 # =========================================================
