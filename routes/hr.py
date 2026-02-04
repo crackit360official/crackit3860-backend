@@ -3,18 +3,18 @@ from db import get_db, get_fs_bucket
 from security import get_current_user
 from services.hr_service import HRService
 from services.hr_audio_service import save_audio
-
+from typing import Any
 router = APIRouter(prefix="/hr", tags=["HR"])
 
 @router.get("/questions")
-async def get_hr_questions(db=Depends(get_db)):
+async def get_hr_questions(db: Any = Depends(get_db)):
     service = HRService(db)
     return {"questions": await service.get_questions()}
 
 @router.get("/progress")
 async def get_progress(
-    user=Depends(get_current_user),
-    db=Depends(get_db)
+    user: dict = Depends(get_current_user),
+    db: Any = Depends(get_db)
 ):
     service = HRService(db)
     return await service.get_progress(user["id"])
@@ -22,8 +22,8 @@ async def get_progress(
 @router.post("/complete")
 async def complete_question(
     payload: dict,
-    user=Depends(get_current_user),
-    db=Depends(get_db)
+    user: dict = Depends(get_current_user),
+    db: Any = Depends(get_db)
 ):
     service = HRService(db)
     await service.mark_completed(
@@ -38,7 +38,7 @@ async def complete_question(
 async def upload_audio(
     question_id: str,
     file: UploadFile = File(...),
-    user=Depends(get_current_user)
+    user: dict = Depends(get_current_user)
 ):
     fs = get_fs_bucket()
 
@@ -56,5 +56,3 @@ async def upload_audio(
         "file_id": str(file_id)
     }
 
-    file_id = await save_audio(fs, user["id"], question_id, file)
-    return {"file_id": str(file_id)}

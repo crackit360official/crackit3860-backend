@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator,field_serializer
 from typing import Optional, List, Any, Dict, Literal
 from datetime import datetime
 
@@ -18,16 +18,6 @@ class AttemptCreate(BaseModel):
     is_correct: bool
     time_spent: float
     created_at: Optional[datetime] = None
-
-    @field_validator("topic")
-    @classmethod
-    def validate_topic(cls, v: str):
-        banned = {"admin", "system", "<script>"}
-        if any(b in v.lower() for b in banned):
-            raise ValueError("Invalid topic")
-        return v
-
-
 
 class PracticeQuery(BaseModel):
     section: str = Field(min_length=2)
@@ -82,9 +72,12 @@ class UserInDB(UserBase):
     refresh_tokens: Optional[List[dict]] = []
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    @field_serializer("created_at")
+    def serialize_created_at(self, value: datetime):
+        return value.isoformat()
+
     class Config:
         populate_by_name = True
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 # =========================================================

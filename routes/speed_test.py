@@ -36,7 +36,7 @@ async def get_speed_test_questions(
     topic: str = Query(...),
     level: str = Query(...),
     limit: int = Query(10, ge=1, le=50),
-    user=Depends(get_current_user)
+    user: dict = Depends(get_current_user)
 ):
     if not check_rate_limit(user["id"], "speed_test"):
         raise HTTPException(429, "Rate limit exceeded")

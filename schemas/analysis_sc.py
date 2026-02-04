@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field 
 from typing import List, Dict 
-from enum import Enum 
-from datetime import datetime 
+from enum import Enum  
 class PerformanceRating(str, Enum): 
     BEGINNER = "beginner" # <60% 
     INTERMEDIATE = "intermediate" # 60–74% 

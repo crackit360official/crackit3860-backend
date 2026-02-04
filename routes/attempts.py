@@ -17,6 +17,7 @@ router = APIRouter(prefix="/attempt", tags=["Attempts"])
     "/",
     status_code=201,
     dependencies=[Depends(limiter.limit("10/minute"))],
+    include_in_schema=False,
 )
 async def submit_attempt(
     request: Request,

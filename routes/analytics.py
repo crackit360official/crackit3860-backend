@@ -14,12 +14,12 @@ router = APIRouter(prefix="/analysis", tags=["Analytics"])
 @router.get(
     "/{user_id}",
     response_model=AnalyticsResponse,
-    dependencies=[Depends(limiter.limit("5/minute"))],
 )
+@limiter.limit("5/minute")
 async def get_user_analysis(
     request: Request,
     user_id: str,
-    current_user=Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     # 🔒 User isolation
     if user_id != current_user["id"]:

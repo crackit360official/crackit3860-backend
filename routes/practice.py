@@ -48,7 +48,7 @@ async def free_practice_preflight():
     return {}
 
 # ---------------- FREE PRACTICE ----------------
-@router.get("/free", response_model=List[QuestionOut])
+@router.get("/free")
 async def free_practice(
     request: Request,
     section: str = Query(...),
@@ -77,11 +77,11 @@ async def free_practice(
         PRACTICE_LATENCY.labels(endpoint="free").observe(time.time() - start)
 
 # ---------------- AUTH PRACTICE ----------------
-@router.get("/questions", response_model=List[QuestionOut])
+@router.get("/questions")
 async def practice_questions(
     request: Request,
     query: PracticeQuery = Depends(),
-    user=Depends(get_current_user)
+    user: dict = Depends(get_current_user)
 ):
     client_host = request.client.host if request.client else "unknown"
     client_key = f"{client_host}:{user['id']}"
