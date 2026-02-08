@@ -5,6 +5,12 @@ class HRService:
         self.attempts = db.hr_attempts
 
     async def get_questions(self):
+        print("DB name:", self.questions.database.name)
+        print("Collection:", self.questions.name)
+
+        count = await self.questions.count_documents({})
+        print("HR question count:", count)
+
         cursor = self.questions.find({})
         return [
             {
